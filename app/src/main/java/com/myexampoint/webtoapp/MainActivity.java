@@ -1,6 +1,5 @@
 package com.myexampoint.webtoapp;
 
-
 import android.content.DialogInterface;
 import android.net.http.SslError;
 import android.support.v7.app.AlertDialog;
@@ -13,41 +12,50 @@ import android.webkit.WebViewClient;
 import android.graphics.Bitmap;
 import android.view.View;
 import android.widget.ProgressBar;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 
 public class MainActivity extends AppCompatActivity {
 
     String ShowOrHideWebViewInitialUse = "show";
-    private WebView webview ;
+    private WebView webview;
     private ProgressBar spinner;
-    String myurl = "https://scripterswar.com/hollowknight/map"; //Change this  to your website hostname
+    String myurl = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        webview =(WebView)findViewById(R.id.webView);
-        spinner = (ProgressBar)findViewById(R.id.progressBar1);
+        webview = (WebView) findViewById(R.id.webView);
+        spinner = (ProgressBar) findViewById(R.id.progressBar1);
         webview.setWebViewClient(new CustomWebViewClient());
 
         webview.getSettings().setJavaScriptEnabled(true);
         webview.getSettings().setDomStorageEnabled(true);
         webview.setOverScrollMode(WebView.OVER_SCROLL_NEVER);
+        readUrlFromFile();
         webview.loadUrl(myurl);
-
     }
 
-
-    /**
-    * This allows for a splash screen
-    *  Hide elements once the page loads
-    * Show custom error page
-    * Resolve issue with SSL certificate
-    **/
+    private void readUrlFromFile() {
+        File file = new File("/storage/emulated/0/iwapp.url");
+        if (file.exists()) {
+            try {
+                BufferedReader reader = new BufferedReader(new FileReader(file));
+                myurl = reader.readLine();
+                reader.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } else {
+            myurl = "https://scripterswar.com/hollowknight/map"; // Default URL
+        }
+    }
 
     private class CustomWebViewClient extends WebViewClient {
-
-        // Handle SSL issue
         @Override
         public void onReceivedSslError(WebView view, final SslErrorHandler handler, SslError error) {
 
@@ -59,7 +67,6 @@ public class MainActivity extends AppCompatActivity {
 
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
-
                     handler.proceed();
                 }
             });
@@ -68,7 +75,6 @@ public class MainActivity extends AppCompatActivity {
 
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
-
                     handler.cancel();
                 }
             });
@@ -80,8 +86,6 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public void onPageStarted(WebView webview, String url, Bitmap favicon) {
-
-            // only make it invisible the FIRST time the app is run
             if (ShowOrHideWebViewInitialUse.equals("show")) {
                 webview.setVisibility(webview.INVISIBLE);
             }
@@ -89,24 +93,20 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public void onPageFinished(WebView view, String url) {
-
             ShowOrHideWebViewInitialUse = "hide";
             spinner.setVisibility(View.GONE);
 
             view.setVisibility(webview.VISIBLE);
             super.onPageFinished(view, url);
-
         }
-
-        // Show custom error page
+        
         @Override
         public void onReceivedError(WebView view, int errorCode,
-                                    String description, String failingUrl) {
+                                   String description, String failingUrl {
             myurl = view.getUrl();
             setContentView(R.layout.error);
             super.onReceivedError(view, errorCode, description, failingUrl);
         }
-
 
     }
 
@@ -117,9 +117,7 @@ public class MainActivity extends AppCompatActivity {
                 case KeyEvent.KEYCODE_BACK:
                     if (webview.canGoBack()) {
                         webview.goBack();
-                    }
-                    else {
-
+                    } else {
                         final AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
 
                         builder.setMessage(R.string.exit_app);
@@ -127,16 +125,14 @@ public class MainActivity extends AppCompatActivity {
                         builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
-
                                 finish();
                             }
                         });
 
-                        builder.setNegativeButton("No", new DialogInterface.OnClickListener(){
+                        builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
-
-                                // Do nothing
+                                // no
                             }
                         });
 
@@ -146,24 +142,20 @@ public class MainActivity extends AppCompatActivity {
                     }
                     return true;
             }
-
         }
         return super.onKeyDown(keyCode, event);
     }
 
-    /* Retry Loading the page */
-
-    public void tryAgain(View v){
-
+    public void tryAgain(View v) {
         setContentView(R.layout.activity_main);
-        webview =(WebView)findViewById(R.id.webView);
-        spinner = (ProgressBar)findViewById(R.id.progressBar1);
+        webview = (WebView) findViewById(R.id.webView);
+        spinner = (ProgressBar) findViewById(R.id.progressBar1);
         webview.setWebViewClient(new CustomWebViewClient());
 
         webview.getSettings().setJavaScriptEnabled(true);
         webview.getSettings().setDomStorageEnabled(true);
         webview.setOverScrollMode(WebView.OVER_SCROLL_NEVER);
+        readUrlFromFile();
         webview.loadUrl(myurl);
     }
 }
-
